@@ -48,7 +48,7 @@
 #include <Wire.h>     //The DHT12 uses I2C comunication.
 DHT12 dht12;          //Preset scale CELSIUS and ID 0x5c.
 
-String M5NSversion("2020041201");
+String M5NSversion("2020051202");
 
 // The UDP library class
 WiFiUDP udp;
@@ -926,8 +926,13 @@ int readNightscout(char *url, char *token, struct NSinfo *ns) {
           ns->delta_interpolated = delta["interpolated"]; // false
           ns->delta_mean5MinsAgo = delta["mean5MinsAgo"]; // 69
           ns->delta_mgdl = delta["mgdl"]; // -4
-          ns->delta_scaled = delta["scaled"]; // -0.2
-          strncpy(ns->delta_display, delta["display"] | "", 16); // "-0.2"
+          ns->delta_scaled = ns->delta_mgdl/18.0;
+            if(cfg.show_mgdl) {
+              sprintf(ns->delta_display, "%+d", ns->delta_mgdl);
+            } else {
+              sprintf(ns->delta_display, "%+.1f", ns->delta_scaled);
+            }
+            
           // Serial.println("DELTA OK");
           
           JsonObject loop_obj;
@@ -1277,7 +1282,7 @@ void draw_page() {
         }
         M5.Lcd.drawString(tmpstr, 0, 72, GFXFF);
 
-        // show BIG delta bellow the name
+        // show BIG delta below the name
         M5.Lcd.setFreeFont(FSSB24);
         // strcpy(ns.delta_display, "+8.9");
         if(ns.delta_mgdl>7)
@@ -1288,7 +1293,7 @@ void draw_page() {
         M5.Lcd.setFreeFont(FSSB12);
 
       } else {
-        // show BIG delta bellow the name
+        // show BIG delta below the name
         M5.Lcd.setFreeFont(FSSB24);
         M5.Lcd.setTextColor(TFT_LIGHTGREY, BLACK);
         M5.Lcd.setTextSize(1);
